@@ -71,7 +71,7 @@ class config:
         sim.simxSetStringSignal(self.clientID, 'start', 's', sim.simx_opmode_oneshot_wait)
         sim.simxSetStringSignal(self.clientID,'torque'+str(index+1), torque_packed, sim.simx_opmode_oneshot_wait)
         sim.simxSetStringSignal(self.clientID,'thrust_'+str(index+1), thrust_packed, sim.simx_opmode_oneshot_wait)
-        sim.simxSetStringSignal(self.clientID, 'start', 's', sim.simx_opmode_oneshot_wait)
+        # sim.simxSetStringSignal(self.clientID, 'start', 's', sim.simx_opmode_oneshot_wait)
     def stopsim(self):
         sim.simxSetStringSignal(self.clientID, 'start', 'e', sim.simx_opmode_oneshot_wait)
         sim.simxFinish(self.clientID)
