@@ -29,12 +29,13 @@ class config:
         sim.simxGetPingTime(self.clientID)
         self.qd = []
         for i in range(nq):
-            ret, self.qd[i] = sim.simxGetObjectHandle(self.clientID, 'qd'+str(i), 
+            ret, qdt = sim.simxGetObjectHandle(self.clientID, 'qd_'+str(i+1), 
                     sim.simx_opmode_blocking)
+            self.qd.append(qdt)
             if ret == sim.simx_return_ok:
-                print("Found quadcopter %s", str(i))
+                print("Found quadcopter %s"%i)
             else:
-                print("Quadcopter %s not found", str(i))
+                print("Quadcopter %s not found"%i)
         ret, self.pl = sim.simxGetObjectHandle(self.clientID, 'payload', 
                     sim.simx_opmode_blocking)
         if ret == sim.simx_return_ok:
@@ -45,7 +46,7 @@ class config:
         # pass
     def getloadstate(self):
         _, p = sim.simxGetObjectPosition(self.clientID, self.pl, -1, sim.simx_opmode_blocking)
-        _, v, w = sim.simxGetObjectVelocity(self.clientID, self.pl, -1, sim.simx_opmode_blocking)
+        _, v, w = sim.simxGetObjectVelocity(self.clientID, self.pl, sim.simx_opmode_blocking)
         _, q = sim.simxGetObjectQuaternion(self.clientID, self.pl, -1, sim.simx_opmode_blocking)
         pos = np.array([p]).T
         vel = np.array([v]).T
@@ -55,7 +56,7 @@ class config:
         return pl_state
     def getqdstate(self, index):
         _, p = sim.simxGetObjectPosition(self.clientID, self.qd[index], -1, sim.simx_opmode_blocking)
-        _, v, w = sim.simxGetObjectVelocity(self.clientID, self.qd[index], -1, sim.simx_opmode_blocking)
+        _, v, w = sim.simxGetObjectVelocity(self.clientID, self.qd[index], sim.simx_opmode_blocking)
         _, q = sim.simxGetObjectQuaternion(self.clientID, self.qd[index], -1, sim.simx_opmode_blocking)
         pos = np.array([p]).T
         vel = np.array([v]).T
@@ -64,12 +65,27 @@ class config:
         qd_state = np.vstack((pos, vel, qot, omg))
         return qd_state
     def fmcommand(self, index, thrust, torque):
-        thrust_packed = struct.pack('f' * len(torque), *torque)
-        torque_packed = struct.pack('f' * len(thrust), *thrust)
+        torque_packed = struct.pack('f' * len(torque), *torque)
+        thrust_packed = struct.pack('f' * len(thrust), *thrust)
+        # print(sim.simxUnpackFloats(torque_packed))
         sim.simxSetStringSignal(self.clientID, 'start', 's', sim.simx_opmode_oneshot_wait)
-        sim.simxSetStringSignal(self.clientID,'torque_'+str(index), torque_packed, sim.simx_opmode_oneshot_wait)
-        sim.simxSetStringSignal(self.clientID,'thrust_'+str(index), thrust_packed, sim.simx_opmode_oneshot_wait)
+        sim.simxSetStringSignal(self.clientID,'torque'+str(index+1), torque_packed, sim.simx_opmode_oneshot_wait)
+        sim.simxSetStringSignal(self.clientID,'thrust_'+str(index+1), thrust_packed, sim.simx_opmode_oneshot_wait)
+        sim.simxSetStringSignal(self.clientID, 'start', 's', sim.simx_opmode_oneshot_wait)
     def stopsim(self):
         sim.simxSetStringSignal(self.clientID, 'start', 'e', sim.simx_opmode_oneshot_wait)
         sim.simxFinish(self.clientID)
+
+if __name__ == "__main__":
+    conf = config(1)
+    pl1 = conf.getloadstate()
+    # print(pl1)
+    qd1 = conf.getqdstate(0)
+    # print(qd1)
+    thrust = np.array([0.0, 0.0, 2.0], dtype=np.float32)
+    # print(type(thrust[0]))
+    torque = np.array([0.0,0.0,0.0],dtype=np.float32)
+    # thrust_packed = struct.pack('f' * len(torque), *torque)
+    conf.fmcommand(0, thrust, torque)
+
 
