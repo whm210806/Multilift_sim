@@ -69,7 +69,7 @@ class config:
         thrust_packed = struct.pack('f' * len(thrust), *thrust)
         # print(sim.simxUnpackFloats(torque_packed))
         sim.simxSetStringSignal(self.clientID, 'start', 's', sim.simx_opmode_oneshot_wait)
-        sim.simxSetStringSignal(self.clientID,'torque'+str(index+1), torque_packed, sim.simx_opmode_oneshot_wait)
+        sim.simxSetStringSignal(self.clientID,'torque_'+str(index+1), torque_packed, sim.simx_opmode_oneshot_wait)
         sim.simxSetStringSignal(self.clientID,'thrust_'+str(index+1), thrust_packed, sim.simx_opmode_oneshot_wait)
         # sim.simxSetStringSignal(self.clientID, 'start', 's', sim.simx_opmode_oneshot_wait)
     def stopsim(self):
@@ -87,5 +87,6 @@ if __name__ == "__main__":
     torque = np.array([0.0,0.0,0.0],dtype=np.float32)
     # thrust_packed = struct.pack('f' * len(torque), *torque)
     conf.fmcommand(0, thrust, torque)
+    conf.stopsim()
 
 
